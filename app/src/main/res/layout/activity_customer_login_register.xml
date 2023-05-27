@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".DriverLoginRegisterActivity"
+    android:background="@drawable/splash">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="Customer Login"
+        android:textSize="30sp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:id="@+id/customer_status"
+        android:background="@color/black"
+        />
+
+    <EditText
+        android:id="@+id/email_customer"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="40dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/customer_status"
+        android:hint="E-mail"
+        android:background="@color/white"
+        android:layout_centerHorizontal="true"
+        android:textSize="30sp"
+        android:layout_marginTop="20dp"
+        android:inputType="textEmailAddress"
+        />
+
+    <EditText
+        android:id="@+id/password_customer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/email_customer"
+        android:hint="Password"
+        android:layout_marginLeft="40dp"
+        android:background="@color/white"
+        android:layout_centerHorizontal="true"
+        android:textSize="30sp"
+        android:layout_marginTop="20dp"
+        android:inputType="textPassword" />
+
+    <Button
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/customerLoginButton"
+        android:text="Login"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
+        android:layout_below="@id/password_customer"
+        android:layout_centerHorizontal="true"
+        android:textSize="20sp"
+        android:layout_marginTop="10dp"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/register_customer_link"
+        android:text="New User ?"
+        android:layout_below="@id/customerLoginButton"
+        android:textSize="20sp"
+        android:textColor="@color/teal_700"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"
+        android:background="@color/black"
+        android:gravity="center"
+
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/customer_register_button"
+        android:text="Register"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
+        android:layout_below="@id/register_customer_link"
+        android:layout_centerHorizontal="true"
+        android:textSize="20sp"
+        android:layout_marginTop="0dp"
+        />
+
+</RelativeLayout>
