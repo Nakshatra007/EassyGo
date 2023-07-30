@@ -18,6 +18,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class CustomerLoginRegisterActivity extends AppCompatActivity {
 
@@ -28,6 +30,9 @@ public class CustomerLoginRegisterActivity extends AppCompatActivity {
     private EditText EmailCustomer;
     private EditText PasswordCustomer;
     private FirebaseAuth mAuth;
+    private DatabaseReference customerDatabaseRef;
+
+    private String onlineCustomerID;
     private ProgressDialog LoadingBar;
     @SuppressLint("MissingInflatedId")
     @Override
@@ -36,6 +41,8 @@ public class CustomerLoginRegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_customer_login_register);
 
         mAuth = FirebaseAuth.getInstance();
+
+
 
         CustomerLoginButton = findViewById(R.id.customerLoginButton);
         CustomerRegisterButton = findViewById(R.id.customer_register_button);
@@ -145,6 +152,14 @@ public class CustomerLoginRegisterActivity extends AppCompatActivity {
 
                     if(task.isSuccessful())
                     {
+
+                        onlineCustomerID = mAuth.getCurrentUser().getUid();
+                        customerDatabaseRef = FirebaseDatabase.getInstance().getReference().
+                                child("Users").child("Customers").child(onlineCustomerID);
+
+
+                        customerDatabaseRef.setValue(true);
+
                         Toast.makeText(CustomerLoginRegisterActivity.this, "Customer registered successfully.", Toast.LENGTH_SHORT).show();
                         LoadingBar.dismiss();
 

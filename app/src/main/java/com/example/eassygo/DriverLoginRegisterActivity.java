@@ -1,8 +1,5 @@
 package com.example.eassygo;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -14,10 +11,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class DriverLoginRegisterActivity extends AppCompatActivity {
 
@@ -30,6 +32,9 @@ public class DriverLoginRegisterActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private ProgressDialog LoadingBar;
+    private DatabaseReference driverDatabaseRef;
+
+    private String onlineDriverID;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -38,6 +43,7 @@ public class DriverLoginRegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_driver_login_register);
 
         mAuth = FirebaseAuth.getInstance();
+
 
         DriverLoginButton = findViewById(R.id.driverLoginButton);
         DriverRegisterButton = findViewById(R.id.driver_register_button);
@@ -49,6 +55,8 @@ public class DriverLoginRegisterActivity extends AppCompatActivity {
 
         DriverRegisterButton.setVisibility(View.INVISIBLE);
         DriverRegisterButton.setEnabled(false);
+
+
 
         DriverRegisterLink.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,6 +158,13 @@ public class DriverLoginRegisterActivity extends AppCompatActivity {
 
                     if(task.isSuccessful())
                     {
+
+                        onlineDriverID = mAuth.getCurrentUser().getUid();
+                        driverDatabaseRef = FirebaseDatabase.getInstance().getReference().
+                                child("Users").child("Drivers").child(onlineDriverID);
+
+
+                        driverDatabaseRef.setValue(true);
                         Toast.makeText(DriverLoginRegisterActivity.this, "Driver registered successfully.", Toast.LENGTH_SHORT).show();
                         LoadingBar.dismiss();
                         Intent driverIntent = new Intent(DriverLoginRegisterActivity.this, DriversMapActivity.class);

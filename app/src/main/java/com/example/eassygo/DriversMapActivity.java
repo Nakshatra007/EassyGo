@@ -24,10 +24,16 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.List;
 
 public class DriversMapActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -47,6 +53,8 @@ public class DriversMapActivity extends FragmentActivity implements OnMapReadyCa
     private FirebaseUser currentUser;
 
     private Boolean currentLogOutDriverStatus = false;
+    private DatabaseReference assignedCustomerRef, assignedCustomerPickUpRef;
+    private String driverID, customerID = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +65,7 @@ public class DriversMapActivity extends FragmentActivity implements OnMapReadyCa
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        driverID = mAuth.getCurrentUser().getUid();
 
         LogOutDriverButton = findViewById(R.id.driver_logout_button);
         SettingsDriverButton = findViewById(R.id.driver_settings_button);
@@ -73,6 +82,68 @@ public class DriversMapActivity extends FragmentActivity implements OnMapReadyCa
                 DisconnectTheDriver();
                 mAuth.signOut();
                 LogOutDriver();
+            }
+        });
+        getAssignedCustomerRequest();
+    }
+
+    private void getAssignedCustomerRequest()
+    {
+        assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").
+                child("Drivers").child(driverID).child("CustomerRideID");
+
+        assignedCustomerRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+             if(dataSnapshot.exists())
+             {
+                 customerID = dataSnapshot.getValue().toString();
+                 getAssignedCustomerPickUpLocation();
+             }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void getAssignedCustomerPickUpLocation()
+    {
+        assignedCustomerPickUpRef = FirebaseDatabase.getInstance().getReference().child("Customer Requests").
+                child(customerID).child("l");
+        assignedCustomerPickUpRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                if(dataSnapshot.exists())
+                {
+                    List<Object> customerLocationMap = (List<Object>) dataSnapshot.getValue();
+
+                    double locationLat = 0;
+                    double locationLong = 0;
+
+
+                    if(customerLocationMap.get(0) != null)
+                    {
+                        locationLat = Double.parseDouble(customerLocationMap.get(0).toString());
+                    }
+
+                    if(customerLocationMap.get(1) != null)
+                    {
+                        locationLong = Double.parseDouble(customerLocationMap.get(1).toString());
+                    }
+
+                    LatLng driverLatLng = new LatLng(locationLat,locationLong);
+                    mMap.addMarker(new MarkerOptions().position(driverLatLng).title("PickUp Location"));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
     }
@@ -127,19 +198,36 @@ public class DriversMapActivity extends FragmentActivity implements OnMapReadyCa
     @Override
     public void onLocationChanged(@NonNull Location location) {
 
-        lastLocation = location;
+        if(getApplicationContext() != null)
+        {
+            lastLocation = location;
 
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(13));
 
+            String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference DriverAvailabilityRef = FirebaseDatabase.getInstance().getReference().child("Drivers Available");
+            DatabaseReference driverAvailabilityRef = FirebaseDatabase.getInstance().getReference().child("Drivers Available");
+            GeoFire geoFireAvailability = new GeoFire(driverAvailabilityRef);
 
-        GeoFire geoFire = new GeoFire(DriverAvailabilityRef);
-        geoFire.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
+            DatabaseReference driverWorkingRef = FirebaseDatabase.getInstance().getReference().child("Drivers Working");
+            GeoFire geoFireWorking = new GeoFire(driverWorkingRef);
 
+            switch (customerID)
+            {
+                case "":
+                    geoFireWorking.removeLocation(userID);
+                    geoFireAvailability.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
+                    break;
+
+                default:
+                    geoFireAvailability.removeLocation(userID);
+                    geoFireWorking.setLocation(userID, new GeoLocation(location.getLatitude(), location.getLongitude()));
+                    break;
+
+            }
+        }
     }
 
     protected synchronized void buildGoogleApiClient() {
